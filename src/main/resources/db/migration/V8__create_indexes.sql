@@ -1,0 +1,11 @@
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX idx_user_sessions_refresh_token ON user_sessions(refresh_token);
+CREATE INDEX idx_email_tokens_token ON email_tokens(token);
+CREATE INDEX idx_email_tokens_user_id ON email_tokens(user_id);
+CREATE INDEX idx_links_user_id ON links(user_id) WHERE is_deleted = false;
+CREATE INDEX idx_links_short_code ON links(short_code);
+CREATE INDEX idx_links_campaign_id ON links(campaign_id);
+CREATE INDEX idx_link_clicks_link_id ON link_clicks(link_id, clicked_at DESC);
+CREATE INDEX idx_link_clicks_clicked_at ON link_clicks(clicked_at DESC);
+CREATE INDEX idx_campaigns_user_id ON campaigns(user_id) WHERE is_archived = false;
