@@ -14,6 +14,7 @@ public record LinkResponse(
         String  originalUrl,
         String  title,
         String  platform,
+        String  affiliateUrl,
         UUID    campaignId,
         List<String> tags,
         Instant createdAt
@@ -32,6 +33,7 @@ public record LinkResponse(
                 link.getOriginalUrl(),
                 link.getTitle(),
                 link.getPlatform(),
+                link.getAffiliateUrl(),
                 link.getCampaignId(),
                 tagNames,
                 link.getCreatedAt()

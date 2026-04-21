@@ -58,6 +58,9 @@ public class Link {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "affiliate_url", columnDefinition = "TEXT")
+    private String affiliateUrl;
+
     @OneToMany(mappedBy = "link", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<LinkTag> tags = new ArrayList<>();

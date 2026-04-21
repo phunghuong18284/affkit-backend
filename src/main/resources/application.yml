@@ -42,6 +42,14 @@ app:
   session:
     refresh-token-ttl-days: 7
 
+accesstrade:
+  api-key: b1tnMBS5qwSWDQaL_IuY_mX5OoAhsY0K
+  api-url: https://api.accesstrade.vn/v1/product_link/create
+  campaigns:
+    tiki: "4348614231480407268"
+    lazada: "5087153089503673507"
+    tiktok: "6648523843406889655"
+
 server:
   port: 8080
 

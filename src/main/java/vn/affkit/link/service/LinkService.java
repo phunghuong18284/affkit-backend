@@ -57,6 +57,7 @@ public class LinkService {
                 .title(req.title())
                 .platform(platform)
                 .campaignId(req.campaignId())
+                .affiliateUrl(req.affiliateUrl())
                 .build();
         linkRepository.save(link);
 
@@ -117,6 +118,16 @@ public class LinkService {
 
         // Xóa cache để redirect trả 404
         redisTemplate.delete("link:" + link.getShortCode());
+    }
+
+    @Transactional
+    public LinkResponse saveAffiliateUrl(UUID userId, UUID linkId, String affiliateUrl) {
+        Link link = linkRepository.findByIdAndUserIdAndDeletedFalse(linkId, userId)
+                .orElseThrow(() -> new AppException(ErrorCode.LINK_NOT_FOUND));
+
+        link.setAffiliateUrl(affiliateUrl);
+        linkRepository.save(link);
+        return LinkResponse.from(link);
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────

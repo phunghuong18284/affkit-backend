@@ -16,6 +16,7 @@ import vn.affkit.link.dto.LinkResponse;
 import vn.affkit.link.dto.UpdateLinkRequest;
 import vn.affkit.link.service.LinkService;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -77,5 +78,16 @@ public class LinkController {
 
         linkService.delete(user.getId(), id);
         return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    @PatchMapping("/{id}/affiliate-url")
+    @Operation(summary = "Lưu affiliate URL cho link")
+    public ResponseEntity<ApiResponse<LinkResponse>> saveAffiliateUrl(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> body) {
+
+        return ResponseEntity.ok(ApiResponse.ok(
+                linkService.saveAffiliateUrl(user.getId(), id, body.get("affiliateUrl"))));
     }
 }

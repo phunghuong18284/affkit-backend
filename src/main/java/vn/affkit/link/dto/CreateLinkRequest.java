@@ -8,15 +8,17 @@ import java.util.UUID;
 
 public record CreateLinkRequest(
 
-        @NotBlank(message = "URL không được để trống")
-        @Size(max = 2048, message = "URL quá dài")
+        @NotBlank(message = "URL khong duoc de trong")
+        @Size(max = 2048, message = "URL qua dai")
         String originalUrl,
 
-        @Size(max = 255, message = "Tên link tối đa 255 ký tự")
+        @Size(max = 255, message = "Ten link toi da 255 ky tu")
         String title,
 
         UUID campaignId,
 
-        @Size(max = 5, message = "Tối đa 5 tags")
-        List<@Size(max = 50, message = "Tag tối đa 50 ký tự") String> tags
+        @Size(max = 5, message = "Toi da 5 tags")
+        List<@Size(max = 50, message = "Tag toi da 50 ky tu") String> tags,
+
+        String affiliateUrl
 ) {}

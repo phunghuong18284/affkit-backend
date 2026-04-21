@@ -1,0 +1,2 @@
+ALTER TABLE links
+    ADD COLUMN IF NOT EXISTS affiliate_url TEXT;
