@@ -15,6 +15,7 @@ import vn.affkit.campaign.repository.CampaignRepository;
 import vn.affkit.common.exception.AppException;
 import vn.affkit.common.exception.ErrorCode;
 import vn.affkit.link.dto.LinkResponse;
+import vn.affkit.link.repository.LinkClickRepository;
 import vn.affkit.link.repository.LinkRepository;
 
 import java.time.Instant;
@@ -24,9 +25,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CampaignService {
 
-    private final CampaignRepository campaignRepository;
-    private final UserRepository     userRepository;
-    private final LinkRepository     linkRepository;
+    private final CampaignRepository  campaignRepository;
+    private final UserRepository      userRepository;
+    private final LinkRepository      linkRepository;
+    private final LinkClickRepository linkClickRepository;
 
     @Transactional
     public CampaignResponse create(UUID userId, CreateCampaignRequest req) {
@@ -40,7 +42,7 @@ public class CampaignService {
                 .build();
 
         campaignRepository.save(campaign);
-        return CampaignResponse.from(campaign);
+        return CampaignResponse.from(campaign, 0L, 0L);
     }
 
     @Transactional(readOnly = true)
@@ -48,7 +50,11 @@ public class CampaignService {
         return campaignRepository
                 .findByUserIdAndDeletedFalseOrderByCreatedAtDesc(
                         userId, PageRequest.of(page, size))
-                .map(CampaignResponse::from);
+                .map(c -> CampaignResponse.from(
+                        c,
+                        linkClickRepository.countByCampaignId(c.getId()),
+                        linkRepository.countByCampaignIdAndDeletedFalse(c.getId())
+                ));
     }
 
     @Transactional(readOnly = true)
@@ -56,7 +62,11 @@ public class CampaignService {
         Campaign campaign = campaignRepository
                 .findByIdAndUserIdAndDeletedFalse(campaignId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.CAMPAIGN_NOT_FOUND));
-        return CampaignResponse.from(campaign);
+        return CampaignResponse.from(
+                campaign,
+                linkClickRepository.countByCampaignId(campaignId),
+                linkRepository.countByCampaignIdAndDeletedFalse(campaignId)
+        );
     }
 
     @Transactional
@@ -73,7 +83,11 @@ public class CampaignService {
         }
 
         campaignRepository.save(campaign);
-        return CampaignResponse.from(campaign);
+        return CampaignResponse.from(
+                campaign,
+                linkClickRepository.countByCampaignId(campaignId),
+                linkRepository.countByCampaignIdAndDeletedFalse(campaignId)
+        );
     }
 
     @Transactional

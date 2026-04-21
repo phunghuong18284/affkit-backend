@@ -23,4 +23,10 @@ public interface LinkClickRepository extends JpaRepository<LinkClick, Long> {
     );
 
     List<LinkClick> findByLinkIdAndClickedAtBetween(UUID linkId, Instant from, Instant to);
+
+    @Query("SELECT COUNT(lc) FROM LinkClick lc " +
+            "WHERE lc.linkId IN (" +
+            "  SELECT l.id FROM Link l WHERE l.campaignId = :campaignId AND l.deleted = false" +
+            ")")
+    long countByCampaignId(@Param("campaignId") UUID campaignId);
 }

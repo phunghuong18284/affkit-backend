@@ -19,6 +19,8 @@ public interface LinkRepository extends JpaRepository<Link, UUID> {
 
     long countByUserIdAndDeletedFalse(UUID userId);
 
+    long countByCampaignIdAndDeletedFalse(UUID campaignId);
+
     @Query("""
             SELECT l FROM Link l
             WHERE l.user.id = :userId
