@@ -62,3 +62,6 @@ logging:
   level:
     vn.affkit: DEBUG
     org.springframework.security: WARN
+telegram:
+  bot-token: 8785849009:AAHVhBLQqUITwHGvNXHxi8iLRKUBKG6QPFg
+  bot-username: affkit_vn_bot
