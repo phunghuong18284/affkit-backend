@@ -433,4 +433,284 @@ class AuthServiceTest {
             assertThat(expiredSession.isRevoked()).isTrue();
         }
     }
+
+    // =========================================================
+    // VERIFY EMAIL
+    // =========================================================
+
+    @Nested
+    @DisplayName("verifyEmail()")
+    class VerifyEmailTests {
+
+        private User unverifiedUser;
+        private UUID validTokenUuid;
+        private EmailToken validEmailToken;
+
+        @BeforeEach
+        void setUp() {
+            unverifiedUser = User.builder()
+                    .id(UUID.randomUUID())
+                    .email("user@gmail.com")
+                    .passwordHash("hashed_pw")
+                    .isVerified(false)
+                    .plan("FREE")
+                    .build();
+
+            validTokenUuid = UUID.randomUUID();
+            validEmailToken = EmailToken.builder()
+                    .token(validTokenUuid)
+                    .user(unverifiedUser)
+                    .type("EMAIL_VERIFY")
+                    .used(false)
+                    .expiresAt(Instant.now().plus(24, ChronoUnit.HOURS))
+                    .build();
+        }
+
+        @Test
+        @DisplayName("✅ Token hợp lệ → user.isVerified=true + trả accessToken + set cookie")
+        void verifyEmail_success() {
+            when(emailTokenRepository.findByTokenAndUsedFalse(validTokenUuid))
+                    .thenReturn(Optional.of(validEmailToken));
+            when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+            when(emailTokenRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+            when(jwtService.generateAccessToken(unverifiedUser)).thenReturn("access_token_ok");
+            when(jwtService.generateRefreshToken()).thenReturn("refresh_token_ok");
+            when(jwtService.getAccessTokenTtlSeconds()).thenReturn(900L);
+            when(userSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+            AuthResponse response = authService.verifyEmail(validTokenUuid.toString(), httpResponse);
+
+            assertThat(response.accessToken()).isEqualTo("access_token_ok");
+            assertThat(unverifiedUser.isVerified()).isTrue();
+            assertThat(validEmailToken.isUsed()).isTrue();
+            verify(httpResponse).addCookie(argThat(c -> "refresh_token".equals(c.getName())));
+        }
+
+        @Test
+        @DisplayName("❌ Token sai format UUID → throw TOKEN_INVALID")
+        void verifyEmail_invalidUuidFormat() {
+            assertThatThrownBy(() -> authService.verifyEmail("not-a-valid-uuid!!!", httpResponse))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(e -> assertThat(((AppException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.TOKEN_INVALID));
+
+            verifyNoInteractions(emailTokenRepository);
+        }
+
+        @Test
+        @DisplayName("❌ Token đã dùng (used=true) → throw TOKEN_INVALID")
+        void verifyEmail_tokenAlreadyUsed() {
+            when(emailTokenRepository.findByTokenAndUsedFalse(validTokenUuid))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> authService.verifyEmail(validTokenUuid.toString(), httpResponse))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(e -> assertThat(((AppException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.TOKEN_INVALID));
+        }
+
+        @Test
+        @DisplayName("❌ Token hết hạn → throw TOKEN_EXPIRED + user không được verify")
+        void verifyEmail_tokenExpired() {
+            EmailToken expiredToken = EmailToken.builder()
+                    .token(validTokenUuid)
+                    .user(unverifiedUser)
+                    .type("EMAIL_VERIFY")
+                    .used(false)
+                    .expiresAt(Instant.now().minus(1, ChronoUnit.HOURS))
+                    .build();
+            when(emailTokenRepository.findByTokenAndUsedFalse(validTokenUuid))
+                    .thenReturn(Optional.of(expiredToken));
+
+            assertThatThrownBy(() -> authService.verifyEmail(validTokenUuid.toString(), httpResponse))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(e -> assertThat(((AppException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.TOKEN_EXPIRED));
+
+            assertThat(unverifiedUser.isVerified()).isFalse();
+        }
+
+        @Test
+        @DisplayName("❌ Token type sai (PASSWORD_RESET dùng nhầm) → throw TOKEN_INVALID")
+        void verifyEmail_wrongTokenType() {
+            EmailToken wrongTypeToken = EmailToken.builder()
+                    .token(validTokenUuid)
+                    .user(unverifiedUser)
+                    .type("PASSWORD_RESET")
+                    .used(false)
+                    .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+                    .build();
+            when(emailTokenRepository.findByTokenAndUsedFalse(validTokenUuid))
+                    .thenReturn(Optional.of(wrongTypeToken));
+
+            assertThatThrownBy(() -> authService.verifyEmail(validTokenUuid.toString(), httpResponse))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(e -> assertThat(((AppException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.TOKEN_INVALID));
+        }
+    }
+
+    // =========================================================
+    // RESET PASSWORD
+    // =========================================================
+
+    @Nested
+    @DisplayName("resetPassword()")
+    class ResetPasswordTests {
+
+        private User existingUser;
+        private UUID resetTokenUuid;
+        private EmailToken resetToken;
+
+        @BeforeEach
+        void setUp() {
+            existingUser = User.builder()
+                    .id(UUID.randomUUID())
+                    .email("user@gmail.com")
+                    .passwordHash("old_hashed_pw")
+                    .isVerified(true)
+                    .plan("FREE")
+                    .build();
+
+            resetTokenUuid = UUID.randomUUID();
+            resetToken = EmailToken.builder()
+                    .token(resetTokenUuid)
+                    .user(existingUser)
+                    .type("PASSWORD_RESET")
+                    .used(false)
+                    .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+                    .build();
+        }
+
+        @Test
+        @DisplayName("✅ Reset thành công → password đổi + tất cả session bị revoke")
+        void resetPassword_success() {
+            UserSession activeSession1 = UserSession.builder()
+                    .user(existingUser)
+                    .refreshToken("token-1")
+                    .isRevoked(false)
+                    .expiresAt(Instant.now().plus(7, ChronoUnit.DAYS))
+                    .build();
+            UserSession activeSession2 = UserSession.builder()
+                    .user(existingUser)
+                    .refreshToken("token-2")
+                    .isRevoked(false)
+                    .expiresAt(Instant.now().plus(7, ChronoUnit.DAYS))
+                    .build();
+
+            when(emailTokenRepository.findByTokenAndUsedFalse(resetTokenUuid))
+                    .thenReturn(Optional.of(resetToken));
+            when(passwordEncoder.encode("NewPassword123")).thenReturn("new_hashed_pw");
+            when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+            when(emailTokenRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+            when(userSessionRepository.findAll()).thenReturn(List.of(activeSession1, activeSession2));
+            when(userSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+            Map<String, String> result = authService.resetPassword(resetTokenUuid.toString(), "NewPassword123");
+
+            assertThat(result).containsKey("message");
+            assertThat(existingUser.getPasswordHash()).isEqualTo("new_hashed_pw");
+            assertThat(resetToken.isUsed()).isTrue();
+            assertThat(activeSession1.isRevoked()).isTrue();
+            assertThat(activeSession2.isRevoked()).isTrue();
+        }
+
+        @Test
+        @DisplayName("❌ Token sai format UUID → throw TOKEN_INVALID")
+        void resetPassword_invalidUuidFormat() {
+            assertThatThrownBy(() -> authService.resetPassword("bad-uuid!!!", "NewPass123"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(e -> assertThat(((AppException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.TOKEN_INVALID));
+        }
+
+        @Test
+        @DisplayName("❌ Token không tồn tại / đã dùng → throw TOKEN_INVALID")
+        void resetPassword_tokenNotFound() {
+            when(emailTokenRepository.findByTokenAndUsedFalse(resetTokenUuid))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> authService.resetPassword(resetTokenUuid.toString(), "NewPass123"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(e -> assertThat(((AppException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.TOKEN_INVALID));
+
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("❌ Token hết hạn → throw TOKEN_EXPIRED + password không đổi")
+        void resetPassword_tokenExpired() {
+            EmailToken expiredToken = EmailToken.builder()
+                    .token(resetTokenUuid)
+                    .user(existingUser)
+                    .type("PASSWORD_RESET")
+                    .used(false)
+                    .expiresAt(Instant.now().minus(1, ChronoUnit.HOURS))
+                    .build();
+            when(emailTokenRepository.findByTokenAndUsedFalse(resetTokenUuid))
+                    .thenReturn(Optional.of(expiredToken));
+
+            assertThatThrownBy(() -> authService.resetPassword(resetTokenUuid.toString(), "NewPass123"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(e -> assertThat(((AppException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.TOKEN_EXPIRED));
+
+            assertThat(existingUser.getPasswordHash()).isEqualTo("old_hashed_pw");
+        }
+
+        @Test
+        @DisplayName("❌ Token type sai (EMAIL_VERIFY dùng nhầm) → throw TOKEN_INVALID")
+        void resetPassword_wrongTokenType() {
+            EmailToken wrongType = EmailToken.builder()
+                    .token(resetTokenUuid)
+                    .user(existingUser)
+                    .type("EMAIL_VERIFY")
+                    .used(false)
+                    .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+                    .build();
+            when(emailTokenRepository.findByTokenAndUsedFalse(resetTokenUuid))
+                    .thenReturn(Optional.of(wrongType));
+
+            assertThatThrownBy(() -> authService.resetPassword(resetTokenUuid.toString(), "NewPass123"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(e -> assertThat(((AppException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.TOKEN_INVALID));
+        }
+
+        @Test
+        @DisplayName("✅ Chỉ revoke session của đúng user, không revoke session user khác")
+        void resetPassword_onlyRevokesCurrentUserSessions() {
+            User otherUser = User.builder()
+                    .id(UUID.randomUUID())
+                    .email("other@gmail.com")
+                    .build();
+
+            UserSession mySession = UserSession.builder()
+                    .user(existingUser)
+                    .refreshToken("my-token")
+                    .isRevoked(false)
+                    .expiresAt(Instant.now().plus(7, ChronoUnit.DAYS))
+                    .build();
+            UserSession otherSession = UserSession.builder()
+                    .user(otherUser)
+                    .refreshToken("other-token")
+                    .isRevoked(false)
+                    .expiresAt(Instant.now().plus(7, ChronoUnit.DAYS))
+                    .build();
+
+            when(emailTokenRepository.findByTokenAndUsedFalse(resetTokenUuid))
+                    .thenReturn(Optional.of(resetToken));
+            when(passwordEncoder.encode(any())).thenReturn("new_hash");
+            when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+            when(emailTokenRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+            when(userSessionRepository.findAll()).thenReturn(List.of(mySession, otherSession));
+            when(userSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+            authService.resetPassword(resetTokenUuid.toString(), "NewPass123");
+
+            assertThat(mySession.isRevoked()).isTrue();
+            assertThat(otherSession.isRevoked()).isFalse();
+        }
+    }
 }
