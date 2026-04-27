@@ -132,7 +132,7 @@ public class PostService {
                 + "Mình vừa tìm được deal này, anh em tranh thủ mua nhanh nhé!\n"
                 + "Không biết còn đến khi nào 😅\n\n"
                 + "🛒 Mua tại đây: " + link + "\n\n"
-                + "#deal #muasắm #giárẻ #affiliatemarketing";
+                + "#deal #muasắm #giá rẻ #affiliatemarketing";
     }
 
     private String buildTelegram(String name, String price, String link) {
