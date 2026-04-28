@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import vn.affkit.auth.dto.*;
 import vn.affkit.auth.entity.*;
@@ -305,15 +306,18 @@ public class AuthService {
 
     // ─── Private helpers ─────────────────────────────────────────────────────
 
-    private void handleFailedLogin(User user) {
-        short attempts = (short) (user.getFailedAttempts() + 1);
-        user.setFailedAttempts(attempts);
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleFailedLogin(User user) {
+        User freshUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        short attempts = (short) (freshUser.getFailedAttempts() + 1);
+        freshUser.setFailedAttempts(attempts);
         if (attempts >= MAX_FAILED_ATTEMPTS) {
-            user.setLocked(true);
-            user.setLockedUntil(Instant.now().plus(LOCK_DURATION_MINUTES, ChronoUnit.MINUTES));
-            log.warn("Account locked: {}", user.getEmail());
+            freshUser.setLocked(true);
+            freshUser.setLockedUntil(Instant.now().plus(LOCK_DURATION_MINUTES, ChronoUnit.MINUTES));
+            log.warn("Account locked: {}", freshUser.getEmail());
         }
-        userRepository.save(user);
+        userRepository.save(freshUser);
     }
 
     private void setRefreshTokenCookie(HttpServletResponse res, String token) {

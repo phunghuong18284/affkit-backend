@@ -25,6 +25,9 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+    url: jdbc:postgresql://localhost:5433/affkit_db
+    user: affkit
+    password: affkit123
   data:
     redis:
       host: localhost
@@ -63,6 +66,7 @@ logging:
   level:
     vn.affkit: DEBUG
     org.springframework.security: WARN
+
 telegram:
   bot-token: 8785849009:AAHVhBLQqUITwHGvNXHxi8iLRKUBKG6QPFg
   bot-username: affkit_vn_bot
