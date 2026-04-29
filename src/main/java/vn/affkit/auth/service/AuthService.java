@@ -33,6 +33,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
+    private final LoginAttemptService loginAttemptService;
 
     @Value("${app.session.refresh-token-ttl-days:7}")
     private int refreshTokenTtlDays;
@@ -91,7 +92,7 @@ public class AuthService {
         }
 
         if (!passwordEncoder.matches(req.password(), user.getPasswordHash())) {
-            handleFailedLogin(user);
+            loginAttemptService.handleFailedLogin(user.getId());
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
 

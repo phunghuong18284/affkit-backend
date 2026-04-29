@@ -1,13 +1,13 @@
 package vn.affkit.auth.service;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -22,29 +22,38 @@ public class EmailService {
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
+    private final RestTemplate restTemplate = new RestTemplate();
+
     public void sendVerificationEmail(String toEmail, String token) {
         String verifyLink = frontendUrl + "/verify-email?token=" + token;
-        send(toEmail, "Xac nhan email AffKit", buildVerifyEmailHtml(toEmail, verifyLink));
+        send(toEmail, "Xác nhận email AffKit", buildVerifyEmailHtml(toEmail, verifyLink));
     }
 
     public void sendPasswordResetEmail(String toEmail, String token) {
         String resetLink = frontendUrl + "/reset-password?token=" + token;
-        send(toEmail, "Dat lai mat khau AffKit", buildResetPasswordHtml(toEmail, resetLink));
+        send(toEmail, "Đặt lại mật khẩu AffKit", buildResetPasswordHtml(toEmail, resetLink));
     }
 
     private void send(String to, String subject, String html) {
         try {
-            Resend resend = new Resend(apiKey);
-            CreateEmailOptions params = CreateEmailOptions.builder()
-                    .from(fromAddress)
-                    .to(List.of(to))
-                    .subject(subject)
-                    .html(html)
-                    .build();
-            resend.emails().send(params);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+
+            Map<String, Object> body = Map.of(
+                    "from", fromAddress,
+                    "to", List.of(to),
+                    "subject", subject,
+                    "html", html,
+                    "headers", Map.of(),
+                    "tags", List.of(),
+                    "click_tracking", false,
+                    "open_tracking", false
+            );
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+            restTemplate.postForEntity("https://api.resend.com/emails", request, String.class);
             log.info("Email sent to: {}", to);
-        } catch (ResendException e) {
-            log.warn("ResendException sending to {}: {}", to, e.getMessage());
         } catch (Exception e) {
             log.warn("Failed to send email to {}: {}", to, e.getMessage());
         }
