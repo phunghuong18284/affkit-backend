@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import vn.affkit.link.entity.Link;
 
 import java.util.Optional;
@@ -21,14 +22,19 @@ public interface LinkRepository extends JpaRepository<Link, UUID> {
 
     long countByCampaignIdAndDeletedFalse(UUID campaignId);
 
-    @Query("""
-            SELECT l FROM Link l
-            WHERE l.user.id = :userId
-              AND l.deleted = false
-              AND (:platform IS NULL OR l.platform = :platform)
-            ORDER BY l.createdAt DESC
-            """)
-    Page<Link> findByUserFiltered(UUID userId, String platform, Pageable pageable);
+    @Query(value = """
+            SELECT * FROM links
+            WHERE user_id = :userId
+              AND is_deleted = false
+              AND (:platform IS NULL OR platform = :platform)
+              AND (:search IS NULL OR title ILIKE CONCAT('%', :search, '%'))
+            ORDER BY created_at DESC
+            """, nativeQuery = true)
+    Page<Link> findByUserFiltered(
+            @Param("userId") UUID userId,
+            @Param("platform") String platform,
+            @Param("search") String search,
+            Pageable pageable);
 
     @Query("""
             SELECT l FROM Link l

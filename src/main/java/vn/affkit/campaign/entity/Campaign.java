@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import vn.affkit.auth.entity.User;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -30,6 +31,12 @@ public class Campaign {
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     @Column(name = "is_deleted", nullable = false)
     @Builder.Default

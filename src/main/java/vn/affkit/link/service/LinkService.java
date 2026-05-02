@@ -76,9 +76,9 @@ public class LinkService {
     }
 
     @Transactional(readOnly = true)
-    public Page<LinkResponse> list(UUID userId, String platform, int page, int size) {
+    public Page<LinkResponse> list(UUID userId, String platform, String search, int page, int size) {
         return linkRepository
-                .findByUserFiltered(userId, platform, PageRequest.of(page, size))
+                .findByUserFiltered(userId, platform, search, PageRequest.of(page, size))
                 .map(LinkResponse::from);
     }
 

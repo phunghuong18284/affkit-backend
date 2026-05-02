@@ -42,11 +42,12 @@ public class LinkController {
     public ResponseEntity<ApiResponse<Page<LinkResponse>>> list(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) String platform,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0")  int page,
             @RequestParam(defaultValue = "20") int size) {
 
         return ResponseEntity.ok(ApiResponse.ok(
-                linkService.list(user.getId(), platform, page, size)));
+                linkService.list(user.getId(), platform, search, page, size)));
     }
 
     @GetMapping("/{id}")

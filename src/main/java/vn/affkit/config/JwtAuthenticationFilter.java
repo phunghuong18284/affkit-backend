@@ -37,7 +37,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = header.substring(7);
         if (!jwtService.isTokenValid(token)) {
-            chain.doFilter(req, res);
+            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            res.setContentType("application/json;charset=UTF-8");
+            res.getWriter().write("{\"success\":false,\"error\":{\"code\":\"UNAUTHORIZED\",\"message\":\"Token het han\"}}");
             return;
         }
 
