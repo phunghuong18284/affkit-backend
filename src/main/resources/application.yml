@@ -5,9 +5,9 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: jdbc:postgresql://localhost:5433/affkit_db
-    username: affkit
-    password: affkit123
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/affkit_db}
+    username: ${DATABASE_USERNAME:affkit}
+    password: ${DATABASE_PASSWORD:affkit123}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
@@ -25,28 +25,25 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
-    url: jdbc:postgresql://localhost:5433/affkit_db
-    user: affkit
-    password: affkit123
+    baseline-version: 0
   data:
     redis:
-      host: localhost
-      port: 6379
+      url: ${REDIS_URL:redis://localhost:6379}
 
 resend:
-  api-key: re_Y9jacGjq_Lnv6HVbXYS44ur458RdxrirP
-  from: onboarding@resend.dev
+  api-key: ${RESEND_API_KEY:re_Y9jacGjq_Lnv6HVbXYS44ur458RdxrirP}
+  from: ${RESEND_FROM:onboarding@resend.dev}
 
 app:
-  frontend-url: http://localhost:3000
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
   jwt:
-    secret: "affkit-super-secret-key-minimum-32-characters-long-for-hs256"
+    secret: ${JWT_SECRET:affkit-super-secret-key-minimum-32-characters-long-for-hs256}
     access-token-ttl-seconds: 900
   session:
     refresh-token-ttl-days: 7
 
 accesstrade:
-  api-key: b1tnMBS5qwSWDQaL_IuY_mX5OoAhsY0K
+  api-key: ${ACCESSTRADE_API_KEY:b1tnMBS5qwSWDQaL_IuY_mX5OoAhsY0K}
   api-url: https://api.accesstrade.vn/v1/product_link/create
   campaigns:
     tiki: "4348614231480407268"
@@ -55,10 +52,10 @@ accesstrade:
     shopee: "4751584435713464237"
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 jwt:
-  secret: "affkit-super-secret-key-must-be-at-least-256-bits-long-for-hmac"
+  secret: ${JWT_SECRET:affkit-super-secret-key-must-be-at-least-256-bits-long-for-hmac}
   access-token-expiry: 900
   refresh-token-expiry: 604800
 
@@ -68,5 +65,5 @@ logging:
     org.springframework.security: WARN
 
 telegram:
-  bot-token: 8785849009:AAHVhBLQqUITwHGvNXHxi8iLRKUBKG6QPFg
-  bot-username: affkit_vn_bot
+  bot-token: ${TELEGRAM_BOT_TOKEN:8785849009:AAHVhBLQqUITwHGvNXHxi8iLRKUBKG6QPFg}
+  bot-username: ${TELEGRAM_BOT_USERNAME:affkit_vn_bot}
