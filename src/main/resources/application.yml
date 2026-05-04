@@ -26,6 +26,9 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     baseline-version: 0
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/affkit_db}
+    user: ${DATABASE_USERNAME:affkit}
+    password: ${DATABASE_PASSWORD:affkit123}
   data:
     redis:
       url: ${REDIS_URL:redis://localhost:6379}
