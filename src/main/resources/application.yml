@@ -22,7 +22,7 @@ spring:
           batch_size: 50
           time_zone: UTC
   flyway:
-    enabled: ${FLYWAY_ENABLED:true}
+    enabled: false
   data:
     redis:
       url: ${REDIS_URL:redis://localhost:6379}
