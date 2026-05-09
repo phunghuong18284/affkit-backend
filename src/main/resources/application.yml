@@ -25,7 +25,11 @@ spring:
     enabled: false
   data:
     redis:
-      url: ${REDIS_URL:redis://localhost:6379}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL:false}
 
 resend:
   api-key: ${RESEND_API_KEY:re_Y9jacGjq_Lnv6HVbXYS44ur458RdxrirP}
