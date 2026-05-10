@@ -29,10 +29,10 @@ public class LinkService {
 
     private static final int FREE_PLAN_LIMIT = 10;
 
-    private final LinkRepository     linkRepository;
-    private final LinkTagRepository  linkTagRepository;
-    private final UserRepository     userRepository;
-    private final ShortCodeService   shortCodeService;
+    private final LinkRepository      linkRepository;
+    private final LinkTagRepository   linkTagRepository;
+    private final UserRepository      userRepository;
+    private final ShortCodeService    shortCodeService;
     private final StringRedisTemplate redisTemplate;
 
     @Transactional
@@ -65,12 +65,16 @@ public class LinkService {
             saveTags(link, req.tags());
         }
 
-        // Cache ngay sau khi tạo
-        redisTemplate.opsForValue().set(
-                "link:" + shortCode,
-                req.originalUrl(),
-                Duration.ofHours(1)
-        );
+        // Cache ngay sau khi tạo — Redis optional, không fail transaction
+        try {
+            redisTemplate.opsForValue().set(
+                    "link:" + shortCode,
+                    req.originalUrl(),
+                    Duration.ofHours(1)
+            );
+        } catch (Exception e) {
+            // Redis không available, bỏ qua — link vẫn hoạt động qua DB
+        }
 
         return LinkResponse.from(link);
     }
@@ -116,8 +120,12 @@ public class LinkService {
         link.setDeletedAt(Instant.now());
         linkRepository.save(link);
 
-        // Xóa cache để redirect trả 404
-        redisTemplate.delete("link:" + link.getShortCode());
+        // Xóa cache — Redis optional, không fail transaction
+        try {
+            redisTemplate.delete("link:" + link.getShortCode());
+        } catch (Exception e) {
+            // Redis không available, bỏ qua
+        }
     }
 
     @Transactional
