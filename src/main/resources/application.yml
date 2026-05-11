@@ -35,7 +35,8 @@ resend:
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
-  short-url-base: ${SHORT_URL_BASE:http://localhost:8080/go/}
+  short-url-base: https://affkit-backend-production.up.railway.app/go/
+
   jwt:
     secret: ${JWT_SECRET:affkit-super-secret-key-minimum-32-characters-long-for-hs256}
     access-token-ttl-seconds: 900
