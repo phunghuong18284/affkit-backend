@@ -1,6 +1,7 @@
 package vn.affkit.campaign.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,9 @@ public class CampaignService {
     private final UserRepository      userRepository;
     private final LinkRepository      linkRepository;
     private final LinkClickRepository linkClickRepository;
+
+    @Value("${app.short-url-base:http://localhost:8080/go/}")
+    private String shortUrlBase;
 
     @Transactional
     public CampaignResponse create(UUID userId, CreateCampaignRequest req) {
@@ -109,6 +113,6 @@ public class CampaignService {
 
         return linkRepository
                 .findByCampaignIdAndUserIdAndDeletedFalse(campaignId, userId, PageRequest.of(page, size))
-                .map(LinkResponse::from);
+                .map(l -> LinkResponse.from(l, shortUrlBase));
     }
 }
