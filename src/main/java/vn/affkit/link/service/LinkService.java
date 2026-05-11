@@ -37,7 +37,7 @@ public class LinkService {
     private final ShortCodeService    shortCodeService;
     private final StringRedisTemplate redisTemplate;
 
-    @Value("${app.short-url-base:http://localhost:8080/go/}")
+    @Value("${SHORT_URL_BASE:http://localhost:8080/go/}")
     private String shortUrlBase;
 
     @PostConstruct
