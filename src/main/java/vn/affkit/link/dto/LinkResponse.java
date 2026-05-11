@@ -19,12 +19,7 @@ public record LinkResponse(
         List<String> tags,
         Instant createdAt
 ) {
-    private static final String BASE_URL =
-            System.getenv("SHORT_URL_BASE") != null
-                    ? System.getenv("SHORT_URL_BASE")
-                    : "http://localhost:8080/go/";
-
-    public static LinkResponse from(Link link) {
+    public static LinkResponse from(Link link, String baseUrl) {
         List<String> tagNames = link.getTags().stream()
                 .map(LinkTag::getTag)
                 .toList();
@@ -32,7 +27,7 @@ public record LinkResponse(
         return new LinkResponse(
                 link.getId(),
                 link.getShortCode(),
-                BASE_URL + link.getShortCode(),
+                baseUrl + link.getShortCode(),
                 link.getOriginalUrl(),
                 link.getTitle(),
                 link.getPlatform(),

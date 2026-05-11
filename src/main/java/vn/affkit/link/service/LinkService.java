@@ -10,6 +10,7 @@ import vn.affkit.auth.entity.User;
 import vn.affkit.auth.repository.UserRepository;
 import vn.affkit.common.exception.AppException;
 import vn.affkit.common.exception.ErrorCode;
+import vn.affkit.config.AppProperties;
 import vn.affkit.link.dto.CreateLinkRequest;
 import vn.affkit.link.dto.LinkResponse;
 import vn.affkit.link.dto.UpdateLinkRequest;
@@ -34,6 +35,7 @@ public class LinkService {
     private final UserRepository      userRepository;
     private final ShortCodeService    shortCodeService;
     private final StringRedisTemplate redisTemplate;
+    private final AppProperties       appProperties;
 
     @Transactional
     public LinkResponse create(UUID userId, CreateLinkRequest req) {
@@ -65,7 +67,6 @@ public class LinkService {
             saveTags(link, req.tags());
         }
 
-        // Cache ngay sau khi tạo — Redis optional, không fail transaction
         try {
             redisTemplate.opsForValue().set(
                     "link:" + shortCode,
@@ -73,24 +74,24 @@ public class LinkService {
                     Duration.ofHours(1)
             );
         } catch (Exception e) {
-            // Redis không available, bỏ qua — link vẫn hoạt động qua DB
+            // Redis không available, bỏ qua
         }
 
-        return LinkResponse.from(link);
+        return LinkResponse.from(link, appProperties.getShortUrlBase());
     }
 
     @Transactional(readOnly = true)
     public Page<LinkResponse> list(UUID userId, String platform, String search, int page, int size) {
         return linkRepository
                 .findByUserFiltered(userId, platform, search, PageRequest.of(page, size))
-                .map(LinkResponse::from);
+                .map(l -> LinkResponse.from(l, appProperties.getShortUrlBase()));
     }
 
     @Transactional(readOnly = true)
     public LinkResponse getById(UUID userId, UUID linkId) {
         Link link = linkRepository.findByIdAndUserIdAndDeletedFalse(linkId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.LINK_NOT_FOUND));
-        return LinkResponse.from(link);
+        return LinkResponse.from(link, appProperties.getShortUrlBase());
     }
 
     @Transactional
@@ -108,7 +109,7 @@ public class LinkService {
         }
 
         linkRepository.save(link);
-        return LinkResponse.from(link);
+        return LinkResponse.from(link, appProperties.getShortUrlBase());
     }
 
     @Transactional
@@ -120,7 +121,6 @@ public class LinkService {
         link.setDeletedAt(Instant.now());
         linkRepository.save(link);
 
-        // Xóa cache — Redis optional, không fail transaction
         try {
             redisTemplate.delete("link:" + link.getShortCode());
         } catch (Exception e) {
@@ -135,7 +135,7 @@ public class LinkService {
 
         link.setAffiliateUrl(affiliateUrl);
         linkRepository.save(link);
-        return LinkResponse.from(link);
+        return LinkResponse.from(link, appProperties.getShortUrlBase());
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
