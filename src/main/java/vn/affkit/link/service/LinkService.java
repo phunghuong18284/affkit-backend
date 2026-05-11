@@ -37,7 +37,7 @@ public class LinkService {
     private final ShortCodeService    shortCodeService;
     private final StringRedisTemplate redisTemplate;
 
-    @Value("${SHORT_URL_BASE:http://localhost:8080/go/}")
+    @Value("${AFFKIT_BASE_URL:http://localhost:8080/go/}")
     private String shortUrlBase;
 
     @PostConstruct
