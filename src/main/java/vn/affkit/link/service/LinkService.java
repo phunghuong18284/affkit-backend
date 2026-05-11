@@ -1,6 +1,7 @@
 package vn.affkit.link.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -10,7 +11,6 @@ import vn.affkit.auth.entity.User;
 import vn.affkit.auth.repository.UserRepository;
 import vn.affkit.common.exception.AppException;
 import vn.affkit.common.exception.ErrorCode;
-import vn.affkit.config.AppProperties;
 import vn.affkit.link.dto.CreateLinkRequest;
 import vn.affkit.link.dto.LinkResponse;
 import vn.affkit.link.dto.UpdateLinkRequest;
@@ -35,7 +35,9 @@ public class LinkService {
     private final UserRepository      userRepository;
     private final ShortCodeService    shortCodeService;
     private final StringRedisTemplate redisTemplate;
-    private final AppProperties       appProperties;
+
+    @Value("${app.short-url-base:http://localhost:8080/go/}")
+    private String shortUrlBase;
 
     @Transactional
     public LinkResponse create(UUID userId, CreateLinkRequest req) {
@@ -77,21 +79,21 @@ public class LinkService {
             // Redis không available, bỏ qua
         }
 
-        return LinkResponse.from(link, appProperties.getShortUrlBase());
+        return LinkResponse.from(link, shortUrlBase);
     }
 
     @Transactional(readOnly = true)
     public Page<LinkResponse> list(UUID userId, String platform, String search, int page, int size) {
         return linkRepository
                 .findByUserFiltered(userId, platform, search, PageRequest.of(page, size))
-                .map(l -> LinkResponse.from(l, appProperties.getShortUrlBase()));
+                .map(l -> LinkResponse.from(l, shortUrlBase));
     }
 
     @Transactional(readOnly = true)
     public LinkResponse getById(UUID userId, UUID linkId) {
         Link link = linkRepository.findByIdAndUserIdAndDeletedFalse(linkId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.LINK_NOT_FOUND));
-        return LinkResponse.from(link, appProperties.getShortUrlBase());
+        return LinkResponse.from(link, shortUrlBase);
     }
 
     @Transactional
@@ -109,7 +111,7 @@ public class LinkService {
         }
 
         linkRepository.save(link);
-        return LinkResponse.from(link, appProperties.getShortUrlBase());
+        return LinkResponse.from(link, shortUrlBase);
     }
 
     @Transactional
@@ -135,7 +137,7 @@ public class LinkService {
 
         link.setAffiliateUrl(affiliateUrl);
         linkRepository.save(link);
-        return LinkResponse.from(link, appProperties.getShortUrlBase());
+        return LinkResponse.from(link, shortUrlBase);
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
