@@ -1,5 +1,6 @@
 package vn.affkit.link.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -38,6 +39,11 @@ public class LinkService {
 
     @Value("${app.short-url-base:http://localhost:8080/go/}")
     private String shortUrlBase;
+
+    @PostConstruct
+    public void init() {
+        System.out.println("=== SHORT_URL_BASE = " + shortUrlBase + " ===");
+    }
 
     @Transactional
     public LinkResponse create(UUID userId, CreateLinkRequest req) {
