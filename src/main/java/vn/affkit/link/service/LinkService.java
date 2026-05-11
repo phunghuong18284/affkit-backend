@@ -39,8 +39,6 @@ public class LinkService {
 
     @Value("${app.short-url-base:http://localhost:8080/go/}")
     private String shortUrlBase;
-    // @Value("${AFFKIT_BASE_URL:http://localhost:8080/go/}")
-   //private String shortUrlBase;
 
     @PostConstruct
     public void init() {
