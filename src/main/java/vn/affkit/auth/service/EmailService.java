@@ -16,7 +16,7 @@ public class EmailService {
     @Value("${resend.api-key}")
     private String apiKey;
 
-    @Value("${resend.from}")
+    @Value("${resend.from:onboarding@resend.dev}")
     private String fromAddress;
 
     @Value("${app.frontend-url}")
@@ -26,12 +26,12 @@ public class EmailService {
 
     public void sendVerificationEmail(String toEmail, String token) {
         String verifyLink = frontendUrl + "/verify-email?token=" + token;
-        send(toEmail, "Xác nhận email AffKit", buildVerifyEmailHtml(toEmail, verifyLink));
+        send(toEmail, "Xac nhan email AffKit", buildVerifyEmailHtml(toEmail, verifyLink));
     }
 
     public void sendPasswordResetEmail(String toEmail, String token) {
         String resetLink = frontendUrl + "/reset-password?token=" + token;
-        send(toEmail, "Đặt lại mật khẩu AffKit", buildResetPasswordHtml(toEmail, resetLink));
+        send(toEmail, "Dat lai mat khau AffKit", buildResetPasswordHtml(toEmail, resetLink));
     }
 
     private void send(String to, String subject, String html) {
