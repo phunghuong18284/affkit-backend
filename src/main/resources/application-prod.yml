@@ -1,11 +1,13 @@
 app:
-  frontend-url: https://affkit-frontend.vercel.app
-  short-url-base: https://affkit-backend-production.up.railway.app/go/
+  frontend-url: https://affkit.vn
+  short-url-base: https://api.affkit.vn/go/
+
+resend:
+  from: noreply@affkit.vn
 
 spring:
   data:
     redis:
-      url: redis://localhost:6379
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}

@@ -61,7 +61,9 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "https://affkit-frontend.vercel.app",
-                "https://affkit-frontend-git-main-phunghuong18284s-projects.vercel.app"
+                "https://affkit-frontend-git-main-phunghuong18284s-projects.vercel.app",
+                "https://affkit.vn",
+                "https://www.affkit.vn"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
