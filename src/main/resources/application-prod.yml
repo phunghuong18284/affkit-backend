@@ -4,6 +4,7 @@ app:
 
 resend:
   from: noreply@affkit.vn
+  api-key: ${RESEND_API_KEY}
 
 spring:
   data:
