@@ -1,3 +1,4 @@
+# rebuild-trigger-v1
 spring:
   application:
     name: affkit-backend
