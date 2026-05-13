@@ -1,0 +1,24 @@
+app:
+  frontend-url: https://affkit.vn
+  short-url-base: https://api.affkit.vn/go/
+
+resend:
+  from: noreply@affkit.vn
+  api-key: re_497T4N3C_5pz4M8z9dhxthM3E8CH6fd4j
+
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL:false}
+
+management:
+  health:
+    redis:
+      enabled: false
+  endpoint:
+    health:
+      show-details: never

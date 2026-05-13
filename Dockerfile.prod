@@ -1,8 +1,7 @@
 FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 COPY . .
-ARG CACHEBUST=1
-RUN chmod +x mvnw && ./mvnw clean package -DskipTests
+RUN echo "cache-bust-$(date +%s)" && chmod +x mvnw && ./mvnw clean package -DskipTests
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
