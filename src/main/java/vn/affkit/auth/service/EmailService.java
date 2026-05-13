@@ -1,5 +1,6 @@
 package vn.affkit.auth.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -23,6 +24,11 @@ public class EmailService {
     private String frontendUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
+
+    @PostConstruct
+    public void init() {
+        log.info("=== RESEND_API_KEY prefix: {} ===", apiKey.substring(0, Math.min(12, apiKey.length())));
+    }
 
     public void sendVerificationEmail(String toEmail, String token) {
         String verifyLink = frontendUrl + "/verify-email?token=" + token;
