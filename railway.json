@@ -3,5 +3,8 @@
   "build": {
     "builder": "DOCKERFILE",
     "dockerfilePath": "Dockerfile.prod"
+  },
+  "deploy": {
+    "startCommand": "java -Dspring.profiles.active=prod -jar /app/app.jar"
   }
 }
