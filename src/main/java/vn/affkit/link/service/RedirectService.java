@@ -21,10 +21,14 @@ public class RedirectService {
 
     public String resolveUrl(String shortCode) {
         // 1. Redis HIT → trả về ngay < 5ms
-        String cached = redisTemplate.opsForValue().get("link:" + shortCode);
-        if (cached != null) return cached;
+        try {
+            String cached = redisTemplate.opsForValue().get("link:" + shortCode);
+            if (cached != null) return cached;
+        } catch (Exception e) {
+            // Redis lỗi → fallback xuống DB
+        }
 
-        // 2. Redis MISS → query DB
+        // 2. Redis MISS hoặc Redis lỗi → query DB
         Link link = linkRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new AppException(ErrorCode.LINK_NOT_FOUND));
 
@@ -32,12 +36,16 @@ public class RedirectService {
             throw new AppException(ErrorCode.LINK_DELETED);
         }
 
-        // 3. Warm cache
-        redisTemplate.opsForValue().set(
-                "link:" + shortCode,
-                link.getOriginalUrl(),
-                Duration.ofHours(1)
-        );
+        // 3. Warm cache (bỏ qua nếu Redis lỗi)
+        try {
+            redisTemplate.opsForValue().set(
+                    "link:" + shortCode,
+                    link.getOriginalUrl(),
+                    Duration.ofHours(1)
+            );
+        } catch (Exception e) {
+            // Redis lỗi → bỏ qua, vẫn trả về URL từ DB
+        }
 
         return link.getOriginalUrl();
     }
