@@ -29,7 +29,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LinkService {
 
-    private static final int FREE_PLAN_LIMIT = 10;
+    private static final int FREE_PLAN_LIMIT = 30;
 
     private final LinkRepository      linkRepository;
     private final LinkTagRepository   linkTagRepository;

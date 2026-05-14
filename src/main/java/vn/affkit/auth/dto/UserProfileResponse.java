@@ -19,7 +19,7 @@ public record UserProfileResponse(
         int linksLimit = switch (user.getPlan()) {
             case "PRO" -> 500;
             case "BUSINESS" -> 99999;
-            default -> 10; // FREE
+            default -> 30; // FREE
         };
         return new UserProfileResponse(
                 user.getId(),
