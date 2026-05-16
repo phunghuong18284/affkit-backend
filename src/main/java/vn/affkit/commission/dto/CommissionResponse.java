@@ -6,7 +6,7 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CommissionResponse(
-        long totalCount,
+        @JsonProperty("total") long totalCount,
         List<Transaction> data
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
