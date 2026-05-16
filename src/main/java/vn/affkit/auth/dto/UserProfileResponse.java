@@ -12,8 +12,9 @@ public record UserProfileResponse(
         String plan,
         boolean emailVerified,
         Instant createdAt,
-        long linksUsed,      // 👈 thêm
-        int linksLimit       // 👈 thêm
+        long linksUsed,
+        int linksLimit,
+        boolean hasAccessTradeKey
 ) {
     public static UserProfileResponse from(User user, long linksUsed) {
         int linksLimit = switch (user.getPlan()) {
@@ -29,7 +30,8 @@ public record UserProfileResponse(
                 user.isVerified(),
                 user.getCreatedAt(),
                 linksUsed,
-                linksLimit
+                linksLimit,
+                user.getAccesstradeApiKey() != null && !user.getAccesstradeApiKey().isBlank()
         );
     }
 }

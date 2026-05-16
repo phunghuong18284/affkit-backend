@@ -16,6 +16,8 @@ import vn.affkit.common.exception.AppException;
 import vn.affkit.common.exception.ErrorCode;
 import vn.affkit.link.repository.LinkRepository;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -25,7 +27,7 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
     private final LinkRepository linkRepository;
 
-    // GET /api/v1/users/me — lấy thông tin profile
+    // GET /api/v1/users/me
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getProfile(
             @AuthenticationPrincipal User user) {
@@ -33,7 +35,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok(UserProfileResponse.from(user, linksUsed)));
     }
 
-    // PATCH /api/v1/users/me — cập nhật fullName
+    // PATCH /api/v1/users/me
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> updateProfile(
             @AuthenticationPrincipal User user,
@@ -44,7 +46,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok(UserProfileResponse.from(user, linksUsed)));
     }
 
-    // POST /api/v1/users/me/change-password — đổi mật khẩu
+    // POST /api/v1/users/me/change-password
     @PostMapping("/me/change-password")
     public ResponseEntity<ApiResponse<Object>> changePassword(
             @AuthenticationPrincipal User user,
@@ -58,6 +60,36 @@ public class UserController {
         userRepository.save(user);
 
         return ResponseEntity.ok(ApiResponse.ok(
-                java.util.Map.of("message", "Đổi mật khẩu thành công")));
+                Map.of("message", "Doi mat khau thanh cong")));
+    }
+
+    // PUT /api/v1/users/me/accesstrade-key — lưu API key AccessTrade
+    @PutMapping("/me/accesstrade-key")
+    public ResponseEntity<ApiResponse<Object>> saveAccessTradeKey(
+            @AuthenticationPrincipal User user,
+            @RequestBody Map<String, String> body) {
+
+        String apiKey = body.get("apiKey");
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new AppException(ErrorCode.VALIDATION_ERROR);
+        }
+
+        user.setAccesstradeApiKey(apiKey.trim());
+        userRepository.save(user);
+
+        return ResponseEntity.ok(ApiResponse.ok(
+                Map.of("message", "Luu API key thanh cong")));
+    }
+
+    // DELETE /api/v1/users/me/accesstrade-key — xóa API key
+    @DeleteMapping("/me/accesstrade-key")
+    public ResponseEntity<ApiResponse<Object>> deleteAccessTradeKey(
+            @AuthenticationPrincipal User user) {
+
+        user.setAccesstradeApiKey(null);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(ApiResponse.ok(
+                Map.of("message", "Da xoa API key")));
     }
 }

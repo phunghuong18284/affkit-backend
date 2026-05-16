@@ -48,6 +48,9 @@ public class User {
     @Builder.Default
     private short failedAttempts = 0;
 
+    @Column(name = "accesstrade_api_key", length = 255)
+    private String accesstradeApiKey;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private Instant createdAt = Instant.now();
