@@ -20,20 +20,23 @@ public enum ErrorCode {
     USER_NOT_FOUND("USER_NOT_FOUND", "Không tìm thấy người dùng", HttpStatus.NOT_FOUND),
     WRONG_PASSWORD("WRONG_PASSWORD", "Mật khẩu hiện tại không đúng", HttpStatus.BAD_REQUEST),
 
-   // Link errors
+    // Link errors
     LINK_NOT_FOUND("LINK_NOT_FOUND", "Link không tồn tại", HttpStatus.NOT_FOUND),
     LINK_DELETED("LINK_DELETED", "Link đã bị xóa", HttpStatus.GONE),
-    LINK_LIMIT_EXCEEDED("LINK_LIMIT_EXCEEDED", "Đã đạt giới hạn 10 link của plan Free", HttpStatus.FORBIDDEN),
+    LINK_LIMIT_EXCEEDED("LINK_LIMIT_EXCEEDED", "Đã đạt giới hạn 30 link của plan Free", HttpStatus.FORBIDDEN),
 
     // Campaign errors
     CAMPAIGN_NOT_FOUND("CAMPAIGN_NOT_FOUND", "Campaign không tồn tại", HttpStatus.NOT_FOUND),
+
+    // AccessTrade errors
+    ACCESSTRADE_KEY_NOT_FOUND("ACCESSTRADE_KEY_NOT_FOUND", "Chưa kết nối AccessTrade. Vào Cài đặt để nhập API key.", HttpStatus.BAD_REQUEST),
+    ACCESSTRADE_API_ERROR("ACCESSTRADE_API_ERROR", "Không thể kết nối AccessTrade API. Kiểm tra lại API key.", HttpStatus.BAD_GATEWAY),
 
     // Common
     VALIDATION_ERROR("VALIDATION_ERROR", "Dữ liệu đầu vào không hợp lệ", HttpStatus.UNPROCESSABLE_ENTITY),
     UNAUTHORIZED("UNAUTHORIZED", "Vui lòng đăng nhập", HttpStatus.UNAUTHORIZED),
     FORBIDDEN("FORBIDDEN", "Không có quyền thực hiện thao tác này", HttpStatus.FORBIDDEN),
     INTERNAL_ERROR("INTERNAL_ERROR", "Lỗi hệ thống, vui lòng thử lại sau", HttpStatus.INTERNAL_SERVER_ERROR);
-
 
     private final String code;
     private final String message;
